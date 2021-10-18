@@ -1,5 +1,5 @@
 # pytorch-FBNN
-Implementation of "Functional Variational Bayesian Neural Networks".<br>
+Implementation of "Functional Variational Bayesian Neural Networks" (ICLR 2019).<br>
 I waited 2 years so that someone can implement the paper "Functional Variational Bayesian Neural Networks" in PyTorch, but it seems no one did and now I am trying to implement it with PyTorch.
 
 ## Reference
