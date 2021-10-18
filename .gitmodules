@@ -1,0 +1,3 @@
+[submodule "Spectral-Stein-Gradient"]
+	path = Spectral-Stein-Gradient
+	url = git@github.com:AntixK/Spectral-Stein-Gradient.git
