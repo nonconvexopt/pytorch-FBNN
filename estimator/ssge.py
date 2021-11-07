@@ -3,10 +3,10 @@ import torch
 import gpytorch
 
 class SSGE:
-    def __init__(self, kernel: gpytorch.kernels.Kernel, eig_threshold = 0.99, noise = 1e-8):
+    def __init__(self, kernel: gpytorch.kernels.Kernel, eig_prop_threshold = 0.99, noise = 1e-8):
         self.kernel = kernel
         self.noise = noise
-        self.eig_threshold = eig_threshold
+        self.eig_prop_threshold = eig_prop_threshold
         
         self.sample = None
         self.gram = None
@@ -16,27 +16,27 @@ class SSGE:
         self.eigval = None
         self.eigvec = None
         
-    def fit(self, sample: torch.Tensor) -> None:
-        sample = sample.clone().detach()
-        sample.requires_grad_(True)
+    def fit(self, x: torch.Tensor) -> None:
+        assert x.requires_grad, "'requires_grad' of input tensor must be set to True."
         
         if self.sample is not None:
-            self.sample = torch.cat([self.sample, sample], axis = 0)
+            self.sample = torch.cat([self.sample, x], axis = 0)
         else:
-            self.sample = sample
+            self.sample = x
 
         self.m = self.sample.shape[0]
         self.dim = self.sample.shape[1]
         self.K = self.kernel(self.sample).evaluate()
         if self.noise:
-            self.K += self.noise * torch.eye(self.m, device = self.sample.device)
+            self.K = self.K + self.noise * torch.eye(self.m, device = self.sample.device)
         
-        self.eigval, self.eigvec = torch.eig(self.K, eigenvectors = True)
-        self.eigval = self.eigval[:, 0]
+        self.eigval, self.eigvec = torch.linalg.eigh(self.K)
+        #Tried to use torch.lobpcg as alternative to torch.linalg.eigh
+        #but it seem is not stable yet.
         #self.eigval, self.eigvec = torch.lobpcg(self.K, min(self.m // 3, self.dim))
         with torch.no_grad():
             eig_props = self.eigval.cumsum(-1) / self.eigval.sum(-1, keepdims = True)
-            eig_props *= eig_props < self.eig_threshold
+            eig_props *= eig_props < self.eig_prop_threshold
             self.j = torch.argmax(eig_props, -1)
         self.eigval = self.eigval[:self.j]
         self.eigvec = self.eigvec[:, :self.j]
@@ -54,10 +54,12 @@ class SSGE:
             outputs = eigfun_hat,
             grad_outputs = torch.ones(eigfun_hat.shape, device = eigfun_hat.device),
             inputs = input_tensor,
+            retain_graph = True,
         )[0].mean(0)
         
     def grad(self, x: torch.Tensor) -> torch.Tensor:
-        x.requires_grad_(True)
+        assert x.requires_grad, "'requires_grad' of input tensor must be set to True."
+        
         K_wing = self.kernel(x, self.sample).evaluate()
         eigfun_hat = math.sqrt(self.m) * torch.einsum("nm,mj->nj", K_wing, self.eigvec) / self.eigval
         gradfun_hat = torch.einsum("nj,mj->nm", eigfun_hat, self.beta)
@@ -65,4 +67,4 @@ class SSGE:
             outputs = gradfun_hat,
             grad_outputs = torch.ones(gradfun_hat.shape, device = gradfun_hat.device),
             inputs = x,
-        )[0].mean(0)
+        )[0]
