@@ -17,10 +17,10 @@ setup(
     version='0.1',
     author='Juhyeong Kim',
     author_email='nonconvexopt@gmail.com',
+    license_files = ('LICENSE.txt',),
     python_requires='>=3.6',
     install_requires=install_requires,
     dependency_links=dependency_links,
-    license='MIT',
     py_modules=['estimator', 'model'],
-    packages=['pytorch_fbnn'],    
+    packages=['pytorch_fbnn'],
 )
