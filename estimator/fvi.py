@@ -3,31 +3,38 @@ import torch.nn as nn
 import torch.nn.functional as F
 import gpytorch
 
+_fvi_mode = [
+    'random',
+    'adversarial',
+    'test_point',   
+]
+
 class fvi(nn.Module):
     def __init__(
         self,
         variational_model: nn.Module,
         prior: gpytorch.models.GP,
+        mode = 'random',
         fn_noise_std = 1e-8,
     ):
         super(fvi, self).__init__()
-        
-        assert hasattr(variational_model, 'weigth_mean') and hasattr(variational_model, 'weigth_logvar')
-        
-        #Variational model is assumed to have pytorch 'forward' method
-        #as a __call__ method and 'kld' method returning KLD of parameters.
-        #Also, forward method is assumed to return stochastic results.
+
+        assert mode in _fvi_mode
+        assert hasattr(variational_model, 'weight_mean') and hasattr(variational_model, 'weight_logvar')
+
+        # Variational model is assumed to have pytorch 'forward' method as a __call__ method and 'kld' method
+        # returning KL divergence. Also, forward method is assumed to return stochastic results.
         self.variational_model = variational_model
         self.prior = prior
         self.fn_noise_std = fn_noise_std
-        
+
     def self.fkld(self, x, fn_noise_std = 0.0):
         model_pred_dist = self.model(x)
         gp_pred_dist = self.prior(x)
         
         if fn_noise_std:
             pred_mean = 
-        
+
         return 
         
     def forward(self, x, inducing_x, repeat = 1):
