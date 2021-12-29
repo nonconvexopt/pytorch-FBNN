@@ -1,6 +1,6 @@
 # [WIP] pytorch-FBNN
-Implementation of ["Functional Variational Bayesian Neural Networks" (ICLR 2019)](https://arxiv.org/abs/1903.05779) in PyTorch.<br>
-<br>
+Unofficial PyTorch implementation of ["Functional Variational Bayesian Neural Networks" (ICLR 2019)](https://arxiv.org/abs/1903.05779) in PyTorch.<br>
+See original, TensorFlow implementation by the author at [ssydasheng/FBNN](https://github.com/ssydasheng/FBNN).
 See another implementation of `Spectral Stein Gradient Estimtor` at [here](https://github.com/AntixK/Spectral-Stein-Gradient) if the dependancy on `Spectral Stein Gradient Estimtor` implementation raises a issue.
 
 ## Reference
