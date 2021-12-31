@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 
 
 class inducing_sampler(nn.Module):
-    # Inherited nn.Module for torch.jit.script
+    # Inherited nn.Module to gain performance benefit by torch.jit.script
     def forward(self, sample_size=torch.Size(), batch: torch.Tensor) -> torch.Tensor:
         # Method Sampling inducing points.
         # `batch` argument may not be used.
