@@ -5,19 +5,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 import gpytorch
 
+from torch_ssge import SSGE
+
 
 class fvi(nn.Module):
     def __init__(
         self,
         variational_model: nn.Module,
         prior: gpytorch.models.GP,
+        grad_estimator: SSGE,
         input_shape = torch.Size(),
         fn_noise_std = 1e-8,
     ):
         super(fvi, self).__init__()
 
         # Variational model is assumed to have pytorch 'forward' method as a __call__ method and 'kld' method
-        # returning KL divergence. Also, forward method is assumed to return stochastic results.
+        # returning KL divergence value with singleton tensor. Also, forward method is assumed to return stochastic results.
         self.variational_model = variational_model
         self.prior = prior
         self.input_shape = input_shape
@@ -28,10 +31,17 @@ class fvi(nn.Module):
             assert torch.ne(self.variational_model(self.inducing_sample()), self.variational_model(self.inducing_sample())).any(), \
                 "Variational model should output stochastic results."
 
+        # Spectral Stein Gradient Estimator is used for estimating the gradient of implicit distribution
+        # by kernel-based techniques and Nystrom method.
+        # Here, I used my implementation of Spectral Stein Gradient Estimator.
+        # Please modify this code to apply the other implementation of Spectral Stein Gradient Estimator.
+        self.grad_estimator = grad_estimator
 
-    def fkld(self, xs, fn_noise_std = 0.0):
-        model_pred_dist = self.model(xs)
+
+    def fkld(self, fs):
         gp_pred_dist = self.prior(xs)
+        self.grad_estimator.fit()
+        self.grad_estimator()
 
         if fn_noise_std:
             pred_mean = 
